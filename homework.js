@@ -2,47 +2,41 @@ let dna = require("./brca1.json");
 
 /////////////////////// SENTENCE CHECKER //////////////////////////
 const sentenceChecker = (sentence, letter) => {
+    if (typeof sentence !== "string" || typeof letter !== "string") {
+        console.log("Input values must be strings");
+        return;
+    }
     let sanitizedSentence = sentence.replaceAll(".", "").replaceAll(",", "").toLowerCase();
-    let arr = sanitizedSentence.split(" ");
-    console.log(`There is ${arr.length} words in the sentence`);
+    let arr = sanitizedSentence.split(" ").filter(word => word.trim() !== "");
 
-    let smallLetter = letter.toLowerCase();
-    let counter = 0;
-    let letterCounter = 0;
-    for (let i = 0; i < sanitizedSentence.length; i++) {
-        if (sanitizedSentence[i] === ' ') {
-            counter++;
-        }
-        if (sanitizedSentence[i] === smallLetter) {
-            letterCounter++;
-        }
-    }
-    counter++;
-
-    // console.log(`There is ${counter} words in the sentence`);
-    console.log(`There is ${letterCounter} letters "${smallLetter}" in the sentence`);
-
-    let obj = {}
-    for (let word of arr) {
-        let len = word.length;
-        if (len in obj) {
-            obj[len].push(word)
-        } else {
-            obj[len] = [word];
-        }
+    if (arr.length === 0) {
+        console.log(`No words in the sentence`);
+        return;
     }
 
-    let maxLen = -Infinity;
-    for (let key in obj) {
-        let val = parseInt(key);
-        if (val > maxLen) {
-            maxLen = val;
-        }
+    console.log(arr.length === 1
+        ? `There is ${arr.length} word in the sentence`
+        : `There is ${arr.length} words in the sentence`);
+
+    letter = letter.trim()[0];
+    if (letter != undefined) {
+        let lowLetter = letter.toLowerCase();
+        let letterCounter = sanitizedSentence.split(lowLetter).length - 1;
+    
+        console.log(letterCounter === 1
+            ? `There is ${letterCounter} letter "${letter}" in the sentence`
+            : `There are ${letterCounter} letters "${letter}" in the sentence`);
     }
+
+    let obj = {};
+    for (let word of arr) populateObj(word, obj);
+    const { maxLen } = findMinMax(obj);
     let maxArr = obj[maxLen];
 
     console.log(`Length of the longest word is: ${maxLen}.`);
-    console.log(maxArr.length > 1 ? `The longest words are: ${maxArr.join(', ')}.` : `The longest word is: ${maxArr.join('')}.`);
+    console.log(maxArr.length > 1 
+        ? `There are ${maxArr.length} words of length same as the longest. They are: ${maxArr.join(', ')}.` 
+        : `There is ${maxArr.length} word of length same as the longest. It is: ${maxArr.join('')}.`);
 }
 
 /////////////////////// GENE FINDER //////////////////////////
@@ -67,30 +61,15 @@ const findAllGenes = dna => {
         let geneCandidate = dna.slice(startIndex, endIndex + 3);
 
         if (geneCandidate.length % 3 === 0) {
-            let len = geneCandidate.length;
+            populateObj(geneCandidate, obj);
             counter++;
-            if (len in obj) {
-                obj[len].push(geneCandidate)
-            } else {
-                obj[len] = [geneCandidate]
-            }
             dna = dna.slice(endIndex + 3);
             startIndex = dna.indexOf(START_CODON);
             endIndex = startIndex;
         }
+    }
 
-    }
-    let maxLen = -Infinity;
-    let minLen = Infinity;
-    for (let key in obj) {
-        let val = parseInt(key);
-        if (val > maxLen) {
-            maxLen = val;
-        }
-        if (val < minLen) {
-            minLen = val;
-        }
-    }
+    const { minLen, maxLen } = findMinMax(obj);
 
     console.log(`Found genes: ${counter}`);
     console.log(`Length of the longest gene: ${maxLen}`);
@@ -106,12 +85,12 @@ const marioTower = height => {
 
         let hashes = "";
         for (let j = 0; j < hashesCount; j++) {
-            hashes = hashes + "#";
+            hashes += "#";
         }
 
         let spaces = "";
         for (let k = 0; k < spacesCount; k++) {
-            spaces = spaces + " ";
+            spaces += " ";
         }
         console.log(spaces + hashes + " " + hashes);
     }
@@ -119,6 +98,10 @@ const marioTower = height => {
 
 /////////////////////// CREDIT CARD VALIDATOR //////////////////////////
 const validateCard = cardNumber => {
+    if (typeof cardNumber !== "string") {
+        console.log("Input value must a string");
+        return;
+    }
 
     if (!luhnCheck(cardNumber)) {
         console.log("INVALID");
@@ -144,11 +127,12 @@ const validateCard = cardNumber => {
 const luhnCheck = value => {
     if (/[^0-9-\s]+/.test(value)) return false;
 
-    var nCheck = 0, nDigit = 0, bEven = false;
+    let nCheck = 0;
+    let bEven = false;
     value = value.replace(/\D/g, "");
 
-    for (var n = value.length - 1; n >= 0; n--) {
-        var cDigit = value.charAt(n),
+    for (let n = value.length - 1; n >= 0; n--) {
+        let cDigit = value.charAt(n),
             nDigit = parseInt(cDigit, 10);
 
         if (bEven) {
@@ -161,28 +145,53 @@ const luhnCheck = value => {
     return (nCheck % 10) == 0;
 }
 
+/////////////////////// helper methods //////////////////////////
+const populateObj = (val, obj) => {
+    let len = val.length;
+    obj[len] = obj[len] || [];
+    obj[len].push(val);
+}
+
+const findMinMax = obj => {
+    let maxLen = -Infinity;
+    let minLen = Infinity;
+    for (let key in obj) {
+        let val = parseInt(key);
+        if (val > maxLen) maxLen = val;
+        if (val < minLen) minLen = val;
+    }
+    return { minLen, maxLen };
+}
+
 /////////////////////////////////////////////////////////////////
 
 let example1 = "This is an example.";
 let example2 = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
+let example3 = "";
 
 sentenceChecker(example1, "A");
-sentenceChecker(example2, "A");
+console.log("\n")
+sentenceChecker(example2, "   bbn   ");
+console.log("\n")
+sentenceChecker(example3, "");
 
-// findAllGenes(dna);
+console.log("\n")
+findAllGenes(dna);
 
-// marioTower(8);
+console.log("\n")
+marioTower(8);
 
-// const valid1 = "5597507644910558"; // valid Mastercard
-// const valid2 = "376462280921451";  // valid American Express
-// const valid3 = "4916615639346972"; // valid Visa
+console.log("\n")
+const validCards = [
+    "5597507644910558", // valid Mastercard
+    "376462280921451",  // valid American Express
+    "4916615639346972"  // valid Visa
+];
 
-// const invalid1 = "4532778771091795"; // invalid
-// const invalid2 = "5795593392134643"; // invalid
+const invalidCards = [
+    "4532778771091795", // invalid
+    "5795593392134643"  // invalid
+];
 
-// validateCard(valid1);
-// validateCard(valid2);
-// validateCard(valid3);
-
-// validateCard(invalid1);
-// validateCard(invalid2);
+validCards.forEach(card => validateCard(card));
+invalidCards.forEach(card => validateCard(card));
