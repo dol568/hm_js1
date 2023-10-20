@@ -6,40 +6,96 @@ const sentenceChecker = (sentence, letter) => {
         console.log("Input values must be strings");
         return;
     }
-    let sanitizedSentence = sentence.replaceAll(".", "").replaceAll(",", "").toLowerCase();
-    let arr = sanitizedSentence.split(" ").filter(word => word.trim() !== "");
+    let sanitizedSentence = sentence.replaceAll(".", "").replaceAll(",", "").toLowerCase().trim();
 
-    if (arr.length === 0) {
+    letter = letter.trim()[0];
+
+/////////////////////// 1st SOLUTION //////////////////////////
+
+    if (sanitizedSentence.length === 0) {
         console.log(`No words in the sentence`);
         return;
     }
 
-    console.log(arr.length === 1
-        ? `There is ${arr.length} word in the sentence`
-        : `There is ${arr.length} words in the sentence`);
+    let startIndex = 0;
+    let word = "";
+    let wordsCounter = 0;
+    let letterCounter = 0;
+    let maxLenWord = -Infinity;
+    let longestWords = "";
+    let longestWordsCounter = "";
 
-    letter = letter.trim()[0];
+    for (let i = 0; i <= sanitizedSentence.length; i++) {
+        let char = sanitizedSentence[i];
+
+        if (letter != undefined) {
+            if (char === letter.toLowerCase()) {
+                letterCounter++;
+            }
+        }
+        if (char == ' ' || i == sanitizedSentence.length ) {
+            word = sanitizedSentence.slice(startIndex, i);
+            if (word.length > 0) {
+                wordsCounter++;
+                if (word.length > maxLenWord) {
+                    maxLenWord = word.length;
+                    longestWords = word;
+                    longestWordsCounter = 1;
+                } else if (word.length === maxLenWord) {
+                    longestWords = longestWords.concat(", ", word);
+                    longestWordsCounter++;
+                }
+            }
+            startIndex = i + 1;
+        }
+    }
+
+    console.log(wordsCounter === 1
+        ? `There is ${wordsCounter} word in the sentence`
+        : `There is ${wordsCounter} words in the sentence`);
     if (letter != undefined) {
-        let lowLetter = letter.toLowerCase();
-        let letterCounter = sanitizedSentence.split(lowLetter).length - 1;
-    
         console.log(letterCounter === 1
             ? `There is ${letterCounter} letter "${letter}" in the sentence`
             : `There are ${letterCounter} letters "${letter}" in the sentence`);
     }
+    console.log(`Length of the longest word is: ${maxLenWord}.`);
+    console.log(longestWordsCounter > 1
+        ? `There are ${longestWordsCounter} words of length same as the longest. They are: ${longestWords}.`
+        : `There is ${longestWordsCounter} word of length same as the longest. It is: ${longestWords}.`);
 
-    let obj = {};
-    for (let word of arr) populateObj(word, obj);
-    const { maxLen } = findMinMax(obj);
-    let maxArr = obj[maxLen];
+/////////////////////// 2nd SOLUTION //////////////////////////
 
-    console.log(`Length of the longest word is: ${maxLen}.`);
-    console.log(maxArr.length > 1 
-        ? `There are ${maxArr.length} words of length same as the longest. They are: ${maxArr.join(', ')}.` 
-        : `There is ${maxArr.length} word of length same as the longest. It is: ${maxArr.join('')}.`);
+    // let arr = sanitizedSentence.split(" ").filter(word => word.trim() !== "");
+
+    // if (arr.length === 0) {
+    //     console.log(`No words in the sentence`);
+    //     return;
+    // }
+
+    // console.log(arr.length === 1
+    //     ? `There is ${arr.length} word in the sentence`
+    //     : `There is ${arr.length} words in the sentence`);
+
+    // if (letter != undefined) {
+    //     let letterCounter = sanitizedSentence.split(letter.toLowerCase()).length - 1;
+
+    //     console.log(letterCounter === 1
+    //         ? `There is ${letterCounter} letter "${letter}" in the sentence`
+    //         : `There are ${letterCounter} letters "${letter}" in the sentence`);
+    // }
+
+    // let obj = {};
+    // for (let word of arr) populateObj(word, obj);
+    // const { maxLen } = findMinMax(obj);
+    // let maxArr = obj[maxLen];
+
+    // console.log(`Length of the longest word is: ${maxLen}.`);
+    // console.log(maxArr.length > 1 
+    //     ? `There are ${maxArr.length} words of length same as the longest. They are: ${maxArr.join(', ')}.` 
+    //     : `There is ${maxArr.length} word of length same as the longest. It is: ${maxArr.join('')}.`);
 }
 
-/////////////////////// GENE FINDER //////////////////////////
+///////////////////// GENE FINDER //////////////////////////
 const findAllGenes = dna => {
     let START_CODON = "atg";
     let END_CODON = "taa";
@@ -165,7 +221,7 @@ const findMinMax = obj => {
 
 /////////////////////////////////////////////////////////////////
 
-let example1 = "This is an example.";
+let example1 = "This is an    example  .";
 let example2 = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
 let example3 = "";
 
